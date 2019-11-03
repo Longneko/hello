@@ -32,11 +32,18 @@ func redirectToHello(c *gin.Context) {
 }
 
 func hello(c *gin.Context) {
+	repo, err := models.GetDefaultGreetingRepo()
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
 	c.HTML(
 		http.StatusOK,
 		"index.tmpl",
 		gin.H{
-			"title": "Hello!",
+			"title":     "Hello!",
+			"greetings": repo.GetSorted(true),
 		},
 	)
 }
@@ -47,5 +54,18 @@ func acceptHello(c *gin.Context) {
 	c.Bind(&greeting)
 	greeting.Time = time.Now().UTC()
 
-	// TODO: actually write greetings somewhere
+	if err := storeGreeting(greeting); err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	redirectToHello(c)
+}
+
+func storeGreeting(g models.Greeting) error {
+	repo, err := models.GetDefaultGreetingRepo()
+	if err != nil {
+		return err
+	}
+	repo.Store(g)
+	return nil
 }
