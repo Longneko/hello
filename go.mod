@@ -7,6 +7,7 @@ require (
 	github.com/gin-gonic/gin v1.4.0
 	github.com/golang/protobuf v1.3.2 // indirect
 	github.com/json-iterator/go v1.1.7 // indirect
+	github.com/kr/pretty v0.1.0 // indirect
 	github.com/mattn/go-isatty v0.0.9 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.4.0 // indirect
