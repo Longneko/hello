@@ -2,7 +2,6 @@ package controller
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -32,10 +31,19 @@ func redirectToHello(c *gin.Context) {
 }
 
 func hello(c *gin.Context) {
-	repo, err := models.GetDefaultGreetingRepo()
+	repo, err := models.NewDefaultDbGreetingRepo()
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
+	}
+
+	greetings, err := repo.GetAll()
+	if err != nil {
+		if err != models.ErrRecordNotFound {
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		err = nil // simply no one has said 'hello' yet T_T
 	}
 
 	c.HTML(
@@ -43,7 +51,7 @@ func hello(c *gin.Context) {
 		"index.tmpl",
 		gin.H{
 			"title":     "Hello!",
-			"greetings": repo.GetSorted(true),
+			"greetings": greetings,
 		},
 	)
 }
@@ -52,7 +60,6 @@ func acceptHello(c *gin.Context) {
 	var greeting models.Greeting
 
 	c.Bind(&greeting)
-	greeting.Time = time.Now().UTC()
 
 	if err := storeGreeting(greeting); err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -62,10 +69,10 @@ func acceptHello(c *gin.Context) {
 }
 
 func storeGreeting(g models.Greeting) error {
-	repo, err := models.GetDefaultGreetingRepo()
+	repo, err := models.NewDefaultDbGreetingRepo()
 	if err != nil {
 		return err
 	}
-	repo.Store(g)
-	return nil
+
+	return repo.Store(g)
 }

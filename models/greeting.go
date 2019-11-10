@@ -1,74 +1,62 @@
 package models
 
 import (
-	"errors"
-	"sort"
-	"sync"
-	"time"
+	"fmt"
+
+	"github.com/Longneko/lamp/database"
 )
 
-var DefaultGreetingRepo *GreetingRepository
-
 type Greeting struct {
+	BaseModel
 	Name string `form:"name"`
-	Time time.Time
+}
+
+func (Greeting) TableName() string {
+	return "greetings"
 }
 
 type GreetingRepository struct {
-	storage map[time.Time]Greeting
-	lock    *sync.RWMutex
+	db database.Conn
 }
 
-func GetDefaultGreetingRepo() (repo *GreetingRepository, err error) {
-	if DefaultGreetingRepo == nil {
-		err = errors.New("GreetingRepository is not initialized!")
+func NewGreetingRepository(db database.Conn) (repo *GreetingRepository, err error) {
+	if !db.IsInit() {
+		err = fmt.Errorf("got uninitialized db")
 		return
 	}
-	repo = DefaultGreetingRepo
+
+	repo = &GreetingRepository{db}
 	return
 }
 
-func NewGreetingRepository() *GreetingRepository {
-	return &GreetingRepository{
-		storage: make(map[time.Time]Greeting),
-		lock:    new(sync.RWMutex),
+func NewDefaultDbGreetingRepo() (repo *GreetingRepository, err error) {
+	db, err := database.GetDb()
+	if err != nil {
+		err = fmt.Errorf("error while getting default db for GreetingRepository: `%s`", err)
+		return
 	}
+
+	repo, err = NewGreetingRepository(db)
+	if err != nil {
+		err = fmt.Errorf("error while constructing new GreetingRepository with default db: `%s`", err)
+		return
+	}
+	return
 }
 
-func (r *GreetingRepository) Store(g Greeting) {
-	r.lock.Lock()
-	defer r.lock.Unlock()
-
-	if r.storage == nil {
-		r.storage = make(map[time.Time]Greeting)
+func (r *GreetingRepository) CreateTable() error {
+	if r.db.HasTable(&Greeting{}) {
+		// TODO: consider returning an easily checkable error
+		return nil
 	}
-
-	r.storage[g.Time.UTC()] = g
+	return r.db.CreateTable(&Greeting{}).Error
 }
 
-func (r *GreetingRepository) GetAll(ascending bool) map[time.Time]Greeting {
-	return r.storage
+func (r *GreetingRepository) Store(g Greeting) error {
+	return r.db.Create(&g).Error
 }
 
-func (r *GreetingRepository) GetSorted(ascending bool) []Greeting {
-	r.lock.RLock()
-	greetingsSorted := make([]Greeting, 0, len(r.storage))
-	for _, g := range r.storage {
-		greetingsSorted = append(greetingsSorted, g)
-	}
-	r.lock.RUnlock()
-
-	var compareFunc func(int, int) bool
-	if ascending {
-		compareFunc = func(i, j int) bool {
-			return greetingsSorted[i].Time.Before(greetingsSorted[j].Time)
-		}
-	} else {
-		compareFunc = func(i, j int) bool {
-			return greetingsSorted[i].Time.After(greetingsSorted[j].Time)
-		}
-	}
-	sort.Slice(greetingsSorted, compareFunc)
-
-	return greetingsSorted
+func (r *GreetingRepository) GetAll() (greetings []Greeting, err error) {
+	err = r.db.Order("id DESC").Find(&greetings).Error
+	return
 }

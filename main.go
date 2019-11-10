@@ -5,13 +5,27 @@ import (
 	"sync"
 
 	"github.com/Longneko/lamp/controller"
+	"github.com/Longneko/lamp/database"
 	"github.com/Longneko/lamp/models"
 )
 
 func main() {
-	// init repo
-	models.DefaultGreetingRepo = models.NewGreetingRepository()
+	// Init DB
+	if err := database.InitDb(); err != nil {
+		panic(err)
+	}
 
+	// Init DB Schema
+	// TODO: move outside main.go and make configurable
+	greetingsRepo, err := models.NewDefaultDbGreetingRepo()
+	if err != nil {
+		panic(err)
+	}
+	if err := greetingsRepo.CreateTable(); err != nil {
+		panic(err)
+	}
+
+	// Init Router
 	router := controller.NewDefaultRouter()
 
 	wg := new(sync.WaitGroup)
