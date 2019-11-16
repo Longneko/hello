@@ -2,9 +2,12 @@ package database
 
 import (
 	"errors"
+	"time"
 
+	"github.com/Longneko/lamp/app/lib/config"
+
+	"github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
 type Conn struct {
@@ -22,9 +25,20 @@ func InitDb() (err error) {
 		return
 	}
 
-	// TODO: ensure proper credentials mechanism (use env vars?)
-	// TODO: set up UTC locale?
-	db, err := gorm.Open("mysql", "root:pass@/hello?charset=utf8&parseTime=True&loc=Local")
+	appCfg := config.Get()
+	dbCfg := mysql.NewConfig()
+	dbCfg.Net = "tcp"
+	dbCfg.Addr = "127.0.0.1"
+	dbCfg.User = "root"
+	dbCfg.Passwd = appCfg.MySql.Password
+	dbCfg.DBName = appCfg.MySql.DbName
+	dbCfg.Loc = time.UTC
+	dbCfg.ParseTime = true
+	dbCfg.Params = map[string]string{
+		"time_zone": `"+00:00"`, // set "+00:00"
+	}
+
+	db, err := gorm.Open("mysql", dbCfg.FormatDSN())
 	if err != nil {
 		return
 	}

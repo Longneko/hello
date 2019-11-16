@@ -5,11 +5,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/Longneko/lamp/models"
+	"github.com/Longneko/lamp/app/models"
 )
 
 const (
-	templatesPath = "templates/"
+	templatesPath = "app/templates/"
 )
 
 func NewDefaultRouter() (router *gin.Engine) {

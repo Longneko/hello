@@ -1,4 +1,4 @@
-mysql_var_names := MYSQL_DATABASE MYSQL MYSQL_ROOT_PASSWORD
+mysql_var_names := MYSQL_DATABASE MYSQL_ROOT_PASSWORD
 enmysql_env_string :=$(foreach var,$(mysql_var_names),-e $(var)=$$HELLO_$(var) \
 )
 

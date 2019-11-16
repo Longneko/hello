@@ -3,7 +3,7 @@ package models
 import (
 	"fmt"
 
-	"github.com/Longneko/lamp/database"
+	"github.com/Longneko/lamp/app/lib/database"
 )
 
 type Greeting struct {

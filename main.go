@@ -4,12 +4,18 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/Longneko/lamp/controller"
-	"github.com/Longneko/lamp/database"
-	"github.com/Longneko/lamp/models"
+	"github.com/Longneko/lamp/app/controller"
+	"github.com/Longneko/lamp/app/lib/config"
+	"github.com/Longneko/lamp/app/lib/database"
+	"github.com/Longneko/lamp/app/models"
 )
 
 func main() {
+	// Init Config
+	if err := config.InitConfig(); err != nil {
+		panic(err)
+	}
+
 	// Init DB
 	if err := database.InitDb(); err != nil {
 		panic(err)
