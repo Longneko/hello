@@ -1,13 +1,20 @@
 package main
 
 import (
-	"fmt"
-	"sync"
+	"log"
+	"net/http"
+	"time"
+
+	"golang.org/x/sync/errgroup"
 
 	"github.com/Longneko/lamp/app/controller"
 	"github.com/Longneko/lamp/app/lib/config"
 	"github.com/Longneko/lamp/app/lib/database"
 	"github.com/Longneko/lamp/app/models"
+)
+
+var (
+	g errgroup.Group
 )
 
 func main() {
@@ -31,19 +38,22 @@ func main() {
 		panic(err)
 	}
 
-	// Init Router
-	router := controller.NewDefaultRouter()
-
-	wg := new(sync.WaitGroup)
-
-	wg.Add(1)
-	go func() {
-		if err := router.Run(); err != nil {
-			fmt.Printf("Error while runnig router: %s\n", err)
+	// init server
+	server := &http.Server{
+		// TODO: add config for server
+		Addr:         ":8080",
+		Handler:      controller.NewDefaultRouter(),
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
+	g.Go(func() error {
+		err := server.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			log.Fatal(err)
 		}
-
-		wg.Done()
-	}()
-
-	wg.Wait()
+		return err
+	})
+	if err := g.Wait(); err != nil {
+		log.Fatal(err)
+	}
 }
