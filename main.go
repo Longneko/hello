@@ -1,9 +1,9 @@
 package main
 
 import (
+	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
-	"time"
 
 	"golang.org/x/sync/errgroup"
 
@@ -39,12 +39,25 @@ func main() {
 	}
 
 	// init server
+	startServer(&g)
+	if err := g.Wait(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+
+func startServer(g *errgroup.Group) {
+	cfg := config.Get()
+
+	gin.SetMode(cfg.Application.Mode)
+
+	router := controller.NewDefaultRouter()
 	server := &http.Server{
 		// TODO: add config for server
-		Addr:         ":8080",
-		Handler:      controller.NewDefaultRouter(),
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		Addr:         cfg.Server.Address(),
+		Handler:      router,
+		ReadTimeout:  cfg.Server.ReadTimeout,
+		WriteTimeout: cfg.Server.WriteTimeout,
 	}
 	g.Go(func() error {
 		err := server.ListenAndServe()
@@ -53,7 +66,4 @@ func main() {
 		}
 		return err
 	})
-	if err := g.Wait(); err != nil {
-		log.Fatal(err)
-	}
 }

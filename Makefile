@@ -15,5 +15,10 @@ endif
 docker-down:
 	docker stop $(mysql_container_name)
 	
+dev: export HELLO_APP_MODE=debug
 dev:
+	go run main.go
+
+prod: export HELLO_APP_MODE=release
+prod:
 	go run main.go
