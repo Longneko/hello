@@ -1,13 +1,20 @@
 package main
 
 import (
-	"fmt"
-	"sync"
+	"github.com/gin-gonic/gin"
+	"log"
+	"net/http"
+
+	"golang.org/x/sync/errgroup"
 
 	"github.com/Longneko/lamp/app/controller"
 	"github.com/Longneko/lamp/app/lib/config"
 	"github.com/Longneko/lamp/app/lib/database"
 	"github.com/Longneko/lamp/app/models"
+)
+
+var (
+	g errgroup.Group
 )
 
 func main() {
@@ -31,19 +38,32 @@ func main() {
 		panic(err)
 	}
 
-	// Init Router
+	// init server
+	startServer(&g)
+	if err := g.Wait(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+
+func startServer(g *errgroup.Group) {
+	cfg := config.Get()
+
+	gin.SetMode(cfg.Application.Mode)
+
 	router := controller.NewDefaultRouter()
-
-	wg := new(sync.WaitGroup)
-
-	wg.Add(1)
-	go func() {
-		if err := router.Run(); err != nil {
-			fmt.Printf("Error while runnig router: %s\n", err)
+	server := &http.Server{
+		// TODO: add config for server
+		Addr:         cfg.Server.Address(),
+		Handler:      router,
+		ReadTimeout:  cfg.Server.ReadTimeout,
+		WriteTimeout: cfg.Server.WriteTimeout,
+	}
+	g.Go(func() error {
+		err := server.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			log.Fatal(err)
 		}
-
-		wg.Done()
-	}()
-
-	wg.Wait()
+		return err
+	})
 }
