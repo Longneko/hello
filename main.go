@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 
 	"golang.org/x/sync/errgroup"
 
@@ -24,24 +25,28 @@ func main() {
 	}
 
 	// Init DB
+	initDbAndSchema()
+
+	// init server
+	startServer(&g)
+	if err := g.Wait(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func initDbAndSchema() {
+	// Init DB
 	if err := database.InitDb(); err != nil {
 		panic(err)
 	}
 
 	// Init DB Schema
-	// TODO: move outside main.go and make configurable
 	greetingsRepo, err := models.NewDefaultDbGreetingRepo()
 	if err != nil {
 		panic(err)
 	}
 	if err := greetingsRepo.CreateTable(); err != nil {
 		panic(err)
-	}
-
-	// init server
-	startServer(&g)
-	if err := g.Wait(); err != nil {
-		log.Fatal(err)
 	}
 }
 
@@ -53,7 +58,6 @@ func startServer(g *errgroup.Group) {
 
 	router := controller.NewDefaultRouter()
 	server := &http.Server{
-		// TODO: add config for server
 		Addr:         cfg.Server.Address(),
 		Handler:      router,
 		ReadTimeout:  cfg.Server.ReadTimeout,
