@@ -17,7 +17,9 @@ const (
 )
 
 type MySql struct {
+	Addr string
 	DbName   string
+	User string
 	Password string
 }
 
@@ -61,15 +63,23 @@ func InitConfig() (err error) {
 	}
 
 	// MySQL
+	if cfg.MySql.Addr, isSet = os.LookupEnv("HELLO_MYSQL_ADDRESS"); !isSet {
+		err = fmt.Errorf("env var HELLO_MYSQL_ADDRESS is not set")
+		return
+	}
 	if cfg.MySql.DbName, isSet = os.LookupEnv("HELLO_MYSQL_DATABASE"); !isSet {
 		err = fmt.Errorf("env var HELLO_MYSQL_DATABASE is not set")
 		return
 	}
-	if cfg.MySql.Password, isSet = os.LookupEnv("HELLO_MYSQL_ROOT_PASSWORD"); !isSet {
-		err = fmt.Errorf("env var HELLO_MYSQL_ROOT_PASSWORD is not set")
+	if cfg.MySql.User, isSet = os.LookupEnv("HELLO_MYSQL_USER"); !isSet {
+		err = fmt.Errorf("env var HELLO_MYSQL_USER is not set")
 		return
 	}
-
+	if cfg.MySql.Password, isSet = os.LookupEnv("HELLO_MYSQL_PASSWORD"); !isSet {
+		err = fmt.Errorf("env var HELLO_MYSQL_PASSWORD is not set")
+		return
+	}
+	
 	// Gin-Gonic server
 	cfg.Server.Port, isSet = os.LookupEnv("HELLO_SERVER_PORT")
 	if !isSet {
