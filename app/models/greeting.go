@@ -6,9 +6,13 @@ import (
 	"github.com/Longneko/lamp/app/lib/database"
 )
 
+const (
+	defaultName = "anonymous"
+)
+
 type Greeting struct {
 	BaseModel
-	Name string `form:"name"`
+	Name string `form:"name" gorm:"column:name"`
 }
 
 func (Greeting) TableName() string {
@@ -53,6 +57,9 @@ func (r *GreetingRepository) CreateTable() error {
 }
 
 func (r *GreetingRepository) Store(g Greeting) error {
+	if g.Name == "" {
+		g.Name = defaultName
+	}
 	return r.db.Create(&g).Error
 }
 

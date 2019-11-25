@@ -1,14 +1,24 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>{{ .title }}</title>
-    </head>
+  <head>
+    <title>{{ .title }}</title>
+  </head>
 
-    <body>
-        <h1>Hello World!</h1>
-        <h2>Recently greeted by:</h2>
-        <ol>
-            {{ range .greetings }}<li><b>{{ .Name }}</b> at <b>{{ (.CreatedAt.UTC).Format "2006-Jan-02 15:04 MST" }}</b></li>{{ end }}
-        </ol>
-    </body>
+  <body>
+    <h1>Hello World!</h1>
+    <div>
+      <h2>Recently greeted by:</h2>
+      <ol>
+      {{ range .greetings }}<li><b>{{ .Name }}</b> at <b>{{ (.CreatedAt.UTC).Format "2006-Jan-02 15:04 MST" }}</b></li>{{ end }}
+      </ol>
+    </div>
+
+    <div>
+      <h2>Say hello back!</h2>
+      <form action="/hello" method="post">
+        from: <input type="text" name="name" placeholder="anonymous">
+        <input type="submit" value="Hello!">
+      </form>
+    </div>
+  </body>
 </html>
