@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{{ .title }}</title>
+    </head>
+
+    <body>
+        <h1>Hello World!</h1>
+        <h2>Recently greeted by:</h2>
+        <ol>
+            {{ range .greetings }}<li><b>{{ .Name }}</b> at <b>{{ (.CreatedAt.UTC).Format "2006-Jan-02 15:04 MST" }}</b></li>{{ end }}
+        </ol>
+    </body>
+</html>
