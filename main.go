@@ -50,7 +50,6 @@ func initDbAndSchema() {
 	}
 }
 
-
 func startServer(g *errgroup.Group) {
 	cfg := config.Get()
 
@@ -60,8 +59,8 @@ func startServer(g *errgroup.Group) {
 	server := &http.Server{
 		Addr:         cfg.Server.Address(),
 		Handler:      router,
-		ReadTimeout:  cfg.Server.ReadTimeout,
-		WriteTimeout: cfg.Server.WriteTimeout,
+		ReadTimeout:  cfg.Server.ReadTimeout.Duration,
+		WriteTimeout: cfg.Server.WriteTimeout.Duration,
 	}
 	g.Go(func() error {
 		err := server.ListenAndServe()
