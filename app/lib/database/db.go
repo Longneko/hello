@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/Longneko/lamp/app/lib/config"
+	"github.com/Longneko/hello/app/lib/config"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
@@ -28,8 +28,8 @@ func InitDb() (err error) {
 	appCfg := config.Get()
 	dbCfg := mysql.NewConfig()
 	dbCfg.Net = "tcp"
-	dbCfg.Addr = "127.0.0.1"
-	dbCfg.User = "root"
+	dbCfg.Addr = appCfg.MySql.Addr
+	dbCfg.User = appCfg.MySql.User
 	dbCfg.Passwd = appCfg.MySql.Password
 	dbCfg.DBName = appCfg.MySql.DbName
 	dbCfg.Loc = time.UTC

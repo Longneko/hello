@@ -5,10 +5,14 @@ import (
 	"os"
 	"time"
 
+	"github.com/BurntSushi/toml"
 	"github.com/gin-gonic/gin"
 )
 
 const (
+	// TODO: add a flag for alternate paths. Make platform independent?
+	filePath = "./conf/app.conf"
+
 	serverDefaultPort    = "8080"
 	serverDefaultReadTO  = 5 * time.Second
 	serverDefaultWriteTO = 10 * time.Second
@@ -16,16 +20,28 @@ const (
 	appDefaultMode = gin.ReleaseMode
 )
 
+type duration struct {
+	time.Duration
+}
+
+func (d *duration) UnmarshalText(text []byte) error {
+	var err error
+	d.Duration, err = time.ParseDuration(string(text))
+	return err
+}
+
 type MySql struct {
+	Addr     string
 	DbName   string
+	User     string
 	Password string
 }
 
 type Server struct {
 	// TODO: add optional host string
 	Port         string
-	ReadTimeout  time.Duration
-	WriteTimeout time.Duration
+	ReadTimeout  duration
+	WriteTimeout duration
 }
 
 func (s Server) Address() string {
@@ -36,10 +52,72 @@ type Application struct {
 	Mode string
 }
 
+type envOverride func(val string, c *Config) error
+
+var envOverrideMap = map[string]envOverride{
+	// TODO: replace with a flag
+	"HELLO_APP_MODE": func(envVal string, cfg *Config) error {
+		cfg.Application.Mode = envVal
+		return nil
+	},
+	"HELLO_MYSQL_ADDRESS": func(envVal string, cfg *Config) error {
+		cfg.MySql.Addr = envVal
+		return nil
+	},
+	"HELLO_MYSQL_DATABASE": func(envVal string, cfg *Config) error {
+		cfg.MySql.DbName = envVal
+		return nil
+	},
+	"HELLO_MYSQL_USER": func(envVal string, cfg *Config) error {
+		cfg.MySql.User = envVal
+		return nil
+	},
+	"HELLO_MYSQL_PASSWORD": func(envVal string, cfg *Config) error {
+		cfg.MySql.Password = envVal
+		return nil
+	},
+	"HELLO_SERVER_PORT": func(envVal string, cfg *Config) error {
+		cfg.Server.Port = envVal
+		return nil
+	},
+	"HELLO_SERVER_READ_TO": func(envVal string, cfg *Config) error {
+		d, err := time.ParseDuration(envVal)
+		if err != nil {
+			return err
+		}
+		cfg.Server.ReadTimeout = duration{d}
+		return nil
+	},
+	"HELLO_SERVER_WRITE_TO": func(envVal string, cfg *Config) error {
+		d, err := time.ParseDuration(envVal)
+		if err != nil {
+			return err
+		}
+		cfg.Server.WriteTimeout = duration{d}
+		return nil
+	},
+}
+
 type Config struct {
-	Application
-	MySql
-	Server
+	Application Application
+	MySql       MySql
+	Server      Server
+}
+
+func (c *Config) envOverride(overrides map[string]envOverride) error {
+	for envName, f := range overrides {
+		envVal, isSet := os.LookupEnv(envName)
+		if isSet {
+			if err := f(envVal, c); err != nil {
+				return fmt.Errorf("error while overriding with env value %s=%s: `%s`",
+					envName,
+					envVal,
+					err,
+				)
+			}
+		}
+	}
+	return nil
 }
 
 var cfg Config
@@ -48,55 +126,21 @@ var cfgInitialized bool
 func InitConfig() (err error) {
 	defer func() {
 		if err != nil {
-			err = fmt.Errorf("failed to initialize config: %s", err)
+			err = fmt.Errorf("failed to initialize config: `%s`", err)
 		}
 	}()
 
-	var isSet bool
-	
-	// TODO: replace with a flag
-	if cfg.Application.Mode, isSet = os.LookupEnv("HELLO_APP_MODE"); !isSet {
-		cfg.Application.Mode = appDefaultMode
-		fmt.Printf("config: application mode not defined, using default `%s`\n", cfg.Application.Mode)
-	}
-
-	// MySQL
-	if cfg.MySql.DbName, isSet = os.LookupEnv("HELLO_MYSQL_DATABASE"); !isSet {
-		err = fmt.Errorf("env var HELLO_MYSQL_DATABASE is not set")
-		return
-	}
-	if cfg.MySql.Password, isSet = os.LookupEnv("HELLO_MYSQL_ROOT_PASSWORD"); !isSet {
-		err = fmt.Errorf("env var HELLO_MYSQL_ROOT_PASSWORD is not set")
+	// TODO: add filepath parsed from flag
+	_, err = toml.DecodeFile(filePath, &cfg)
+	if err != nil {
+		err = fmt.Errorf("failed to decode config file: `%s`", err)
 		return
 	}
 
-	// Gin-Gonic server
-	cfg.Server.Port, isSet = os.LookupEnv("HELLO_SERVER_PORT")
-	if !isSet {
-		cfg.Server.Port = serverDefaultPort
-		fmt.Printf("config: server port not defined, using default `%s`\n", cfg.Server.Port)
-	}
-	readTOStr, isSet := os.LookupEnv("HELLO_SERVER_READ_TO")
-	if isSet {
-		cfg.Server.ReadTimeout, err = time.ParseDuration(readTOStr)
-		if err != nil {
-			err = fmt.Errorf("failed to partse duration from 'HELLO_SERVER_READ_TO' var. Orig. Err: `%s`", err)
-			return
-		}
-	} else {
-		cfg.Server.ReadTimeout = serverDefaultReadTO
-		fmt.Printf("config: server read timeout not defined, using default `%s`\n", cfg.Server.ReadTimeout)
-	}
-	writeTOStr, isSet := os.LookupEnv("HELLO_SERVER_WRITE_TO")
-	if isSet {
-		cfg.Server.WriteTimeout, err = time.ParseDuration(writeTOStr)
-		if err != nil {
-			err = fmt.Errorf("failed to partse duration from 'HELLO_SERVER_WRITE_TO' var. Orig. Err: `%s`", err)
-			return
-		}
-	} else {
-		cfg.Server.WriteTimeout = serverDefaultWriteTO
-		fmt.Printf("config: server write timeout not defined, using default `%s`\n", cfg.Server.WriteTimeout)
+	err = cfg.envOverride(envOverrideMap)
+	if err != nil {
+		err = fmt.Errorf("failed to override from environment: `%s`", err)
+		return
 	}
 
 	cfgInitialized = true

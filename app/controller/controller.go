@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/Longneko/lamp/app/models"
+	"github.com/Longneko/hello/app/models"
 )
 
 const (

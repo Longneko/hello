@@ -3,7 +3,7 @@ package models
 import (
 	"fmt"
 
-	"github.com/Longneko/lamp/app/lib/database"
+	"github.com/Longneko/hello/app/lib/database"
 )
 
 const (
