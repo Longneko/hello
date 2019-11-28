@@ -3,12 +3,12 @@ server {
 	listen [::]:80 default_server;
 
 	location / {
-		proxy_pass http://localhost:8080; # proxy to Hello GoLang server
+		proxy_pass http://HELLO_SERVER_HOST:HELLO_SERVER_PORT; # proxy to Hello GoLang server
 	}
 
 	# Statics:
-	#location /images/ {
+	location ~ \.(gif|jpg|png)$ {
 	# TODO: fill from template based on porject's actual directory
-	#	root /home/valerii/Documents/Projects/lamp/static;
-	#}
+		root HELLO_DIR/static;
+	}
 }

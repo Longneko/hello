@@ -38,14 +38,14 @@ type MySql struct {
 }
 
 type Server struct {
-	// TODO: add optional host string
+	Host         string
 	Port         string
 	ReadTimeout  duration
 	WriteTimeout duration
 }
 
 func (s Server) Address() string {
-	return fmt.Sprintf(":%s", s.Port)
+	return fmt.Sprintf("%s:%s", s.Host, s.Port)
 }
 
 type Application struct {
@@ -74,6 +74,10 @@ var envOverrideMap = map[string]envOverride{
 	},
 	"HELLO_MYSQL_PASSWORD": func(envVal string, cfg *Config) error {
 		cfg.MySql.Password = envVal
+		return nil
+	},
+	"HELLO_SERVER_HOST": func(envVal string, cfg *Config) error {
+		cfg.Server.Host = envVal
 		return nil
 	},
 	"HELLO_SERVER_PORT": func(envVal string, cfg *Config) error {

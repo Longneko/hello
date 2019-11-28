@@ -14,3 +14,6 @@
 
 # Docker volumes and other persistent data
 data
+
+# Config files
+*.conf

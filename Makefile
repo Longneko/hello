@@ -28,5 +28,5 @@ prod: export HELLO_APP_MODE=release
 prod:
 	go run main.go
 
-test:
-	$(if ${HELLO_MYSQL_DATABASE}, $(info ${HELLO_MYSQL_DATABASE} != empty), $(error var HELLO_MYSQL_DATABASE == empty))
+configs:
+	sh ./prepare_configs.sh
