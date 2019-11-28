@@ -136,16 +136,12 @@ func InitConfig() (err error) {
 		err = fmt.Errorf("failed to decode config file: `%s`", err)
 		return
 	}
-	fmt.Printf("after decode: %+v\n", cfg) // DEBUG PRINT
 
 	err = cfg.envOverride(envOverrideMap)
 	if err != nil {
 		err = fmt.Errorf("failed to override from environment: `%s`", err)
 		return
 	}
-	fmt.Printf("after env override: %+v\n", cfg) // DEBUG PRINT
-
-	// TODO: add config structs validation?
 
 	cfgInitialized = true
 	return

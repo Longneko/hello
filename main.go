@@ -8,10 +8,10 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
-	"github.com/Longneko/lamp/app/controller"
-	"github.com/Longneko/lamp/app/lib/config"
-	"github.com/Longneko/lamp/app/lib/database"
-	"github.com/Longneko/lamp/app/models"
+	"github.com/Longneko/hello/app/controller"
+	"github.com/Longneko/hello/app/lib/config"
+	"github.com/Longneko/hello/app/lib/database"
+	"github.com/Longneko/hello/app/models"
 )
 
 var (

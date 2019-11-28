@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/Longneko/lamp/app/lib/config"
+	"github.com/Longneko/hello/app/lib/config"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"

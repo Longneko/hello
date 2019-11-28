@@ -1,4 +1,4 @@
-module github.com/Longneko/lamp
+module github.com/Longneko/hello
 
 go 1.12
 
