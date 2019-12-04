@@ -17,7 +17,8 @@ HELLO_APP_MODE: ["debug", "release"] mode set for the app's Gin-Gonic server aff
 HELLO_MYSQL_ADDRESS:   MySQL server host address
 HELLO_MYSQL_DATABASE:  MySQL database name
 HELLO_MYSQL_USER:      MySQL user
-HELLO_MYSQL_PASSWORD:  MySQL password     
+HELLO_MYSQL_PASSWORD:  MySQL password
+HELLO_MYSQL_ROOT_PASSWORD: used to set root password by docker image on when creating a new container 
 HELLO_SERVER_HOST:     host on which the app server should be listening
 HELLO_SERVER_PORT:     port on which the app server should be listening        
 HELLO_SERVER_READ_TO:  "00h00m00s" format (e.g. "15s") app server's read timeout
@@ -26,7 +27,7 @@ HELLO_SERVER_WRITE_TO: app server's write timeout
 
 ### Initializing config files
 You can create needed config files for both the application and the nginx server from provided tempalates by running while in the app's root dir:
-```Bash
+```bash
 make configs
 ```
 This will create (but not overwrite if already exist) both files:
@@ -38,9 +39,20 @@ If any of the above listed env variables are set, they will be used to populate 
 ### Nginx config
 The Nginx config that can be found in the `./conf/external/` directory after its initialization can either be copied into an existing Nginx configuration file, or (which is more conventional) included in another config file. The default Nginx configuration will include files added to the `/etc/nginx/sites-enabled/` directory if they fit into the "http" directive (which our file does).
 
-
-### First launch
-On first launch, if all the settings are valid and the connection to the MySQL database is established correctly, the necessary table will be created automatically (unless already exists) and the app is in working condition.
-
 ### Docker MySQL container
+If you have already instaleld docker and wish to use a MySQL container, you can do so by running:
+```bash 
+make docker-up
+```
+Which will either:
+* create a new container if non exists yet. This requires the **HELLO_MYSQL_DATABASE** and **HELLO_MYSQL_ROOT_PASSWORD** env variables to be set.
+* start the already existing container unless already running
 
+To stop the container run:
+```bash 
+make docker-down
+```
+*Note: the container uses applciation's `./data/mysql/` directory as a volume to store the database values.*
+
+## First launch
+On first launch, if all the settings are valid and the connection to the MySQL database is established correctly, the necessary table will be created automatically (unless already exists) and the app is in working condition.
