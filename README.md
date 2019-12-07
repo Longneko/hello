@@ -4,7 +4,7 @@ This is a web app that says "hello" to the world and can be said "hello" back to
 
 ## Requirements
 - Docker / MySQL 8.0
-- Nginx
+- Nginx (optional)
 - GoLang 1.13
 
 ## Configuration
@@ -41,6 +41,7 @@ If any of the above listed env variables are set, they will be used to populate 
 
 ### Nginx config
 The Nginx config can be found in the `./conf/external/` directory after its initialization. It proxy passes requests to the app server and serves the static files from the project directory (currently empty). To work its contents can either be copied into an existing Nginx configuration file, or (which is more conventional) the file itself can be included in an already existing Nginx config. The default Nginx configuration will include files added to the `/etc/nginx/sites-enabled/` directory if they fit into the "http" directive (which our file does).
+Please note that this configuration if unedited uses default server to listen an all hosts and the 80 port which would conflict with other configurations using the same options. A regular Nginx installation comes with a file called "default" in the `/etc/nginx/sites-enabled` and `/etc/nginx/sites-available` configuring an example website. The former of these is also automatically included and creates exactly this kind of conflict. You would be required to resolve it to launch properly.
 
 ### Docker MySQL container
 If you have already installed docker and wish to use a MySQL container, you can do so by running:
